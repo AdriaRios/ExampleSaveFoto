@@ -47,6 +47,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //Parte del botón para capturar audio
+        //Test añadir comentario
         mFileName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath();
         mFileName += "/audiorecordtest.3gp";
         mRecordAudioButton = (Button)findViewById(R.id.startAudioButton);
