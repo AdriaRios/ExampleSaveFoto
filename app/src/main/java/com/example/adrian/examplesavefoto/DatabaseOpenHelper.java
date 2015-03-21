@@ -1,4 +1,4 @@
-package com.example.adrian.examplesavefoto.database;
+package com.example.adrian.examplesavefoto;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

@@ -50,4 +50,12 @@
         android:layout_above="@+id/videoView"
         android:layout_alignParentEnd="true" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SAVE"
+        android:id="@+id/saveButton"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_alignParentEnd="true" />
+
 </RelativeLayout>

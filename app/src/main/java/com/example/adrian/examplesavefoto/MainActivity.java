@@ -1,7 +1,10 @@
 package com.example.adrian.examplesavefoto;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
@@ -31,13 +34,18 @@ public class MainActivity extends Activity {
     //Controls
     ImageView mImageView;
     VideoView mVideoView;
+
     Button mVideoButton;
     Button mRecordAudioButton;
     Button mStopAudioButton;
     Button mPlayAudioButton;
+    Button mSaveButton;
+
     MediaRecorder mRecorder = null;
-    private MediaPlayer   mPlayer = null;
+    private MediaPlayer mPlayer = null;
     String mFileName = null;
+
+    ContentResolver contentResolver;
 
     String mCurrentPhotoPath;
     String mCurrentVideoPath;
@@ -46,19 +54,21 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getMemories();
+
         //Parte del botón para capturar audio
         //Test añadir comentario
         mFileName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath();
         mFileName += "/audiorecordtest.3gp";
-        mRecordAudioButton = (Button)findViewById(R.id.startAudioButton);
+        mRecordAudioButton = (Button) findViewById(R.id.startAudioButton);
         mRecordAudioButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 startRecording();
             }
-
         });
 
-        mStopAudioButton = (Button)findViewById(R.id.stopAudioButton);
+        mStopAudioButton = (Button) findViewById(R.id.stopAudioButton);
         mStopAudioButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 stopRecording();
@@ -66,7 +76,7 @@ public class MainActivity extends Activity {
 
         });
 
-        mPlayAudioButton = (Button)findViewById(R.id.playAudioButton);
+        mPlayAudioButton = (Button) findViewById(R.id.playAudioButton);
         mPlayAudioButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 playAudioRecorded();
@@ -74,7 +84,7 @@ public class MainActivity extends Activity {
 
         });
         //Parte del botón para capturar video
-        mVideoButton =(Button)findViewById(R.id.videoButton);
+        mVideoButton = (Button) findViewById(R.id.videoButton);
         mVideoButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 dispatchTakeVideoIntent();
@@ -96,6 +106,71 @@ public class MainActivity extends Activity {
         mVideoView = (VideoView) findViewById(R.id.videoView);
         mVideoView.setVisibility(View.INVISIBLE);
 
+        //Parte guardar en BBDD
+        mSaveButton = (Button) findViewById(R.id.saveButton);
+        mSaveButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startMemoryOnBBDD();
+            }
+        });
+
+    }
+
+    private void getMemories() {
+        this.contentResolver = getContentResolver();
+
+        Cursor coursesListCursor = this.contentResolver.query(
+                MemoriesProvider.CONTENT_URI,
+                new String[]{MemoriesProvider.MEMORY_IMAGE, MemoriesProvider.MEMORY_AUDIO, MemoriesProvider.MEMORY_VIDEO},
+                null,
+                null,
+                null);
+        fromCursor(coursesListCursor);
+        //  Log.i("a","a");
+    }
+
+    private void fromCursor(Cursor cursor) {
+
+        if (cursor.moveToFirst()) {
+            do {
+
+
+                String imagePath = cursor.getString(
+                        cursor.getColumnIndex(MemoriesProvider.MEMORY_IMAGE)
+                );
+                String audioPath = cursor.getString(
+                        cursor.getColumnIndex(MemoriesProvider.MEMORY_AUDIO)
+                );
+                String videoPath = cursor.getString(
+                        cursor.getColumnIndex(MemoriesProvider.MEMORY_VIDEO)
+                );
+                Log.i("BBDD","Imagen: "+imagePath);
+                Log.i("BBDD","Video:"+audioPath);
+                Log.i("BBDD","Audio:"+videoPath);
+
+                Log.i("BBDD","FIN");
+
+            } while (cursor.moveToNext());
+        }
+
+    }
+
+    private void startMemoryOnBBDD() {
+        // Open the database for writing
+        ContentResolver contentResolver = getContentResolver();
+
+        // Create the ContentValues for the data to be saved
+        ContentValues values = new ContentValues();
+        values.put(MemoriesProvider.MEMORY_TITLE, "TÍTULO_TEST");
+        values.put(MemoriesProvider.MEMORY_TEXT, "TEXTO_TEST");
+        values.put(MemoriesProvider.MEMORY_AUDIO, mFileName);
+        values.put(MemoriesProvider.MEMORY_VIDEO, mCurrentVideoPath);
+        values.put(MemoriesProvider.MEMORY_IMAGE, mCurrentPhotoPath);
+        values.put(MemoriesProvider.MEMORY_LATITUDE, 2.01);
+        values.put(MemoriesProvider.MEMORY_LONGITUDE, 43.02);
+
+        // Save the data through the ContentProvider
+        contentResolver.insert(MemoriesProvider.CONTENT_URI, values);
     }
 
 
@@ -116,13 +191,13 @@ public class MainActivity extends Activity {
         mRecorder.start();
     }
 
-    private void stopRecording(){
+    private void stopRecording() {
         mRecorder.stop();
         mRecorder.release();
         mRecorder = null;
     }
 
-    private void playAudioRecorded (){
+    private void playAudioRecorded() {
         mPlayer = new MediaPlayer();
         try {
             mPlayer.setDataSource(mFileName);
@@ -133,7 +208,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void dispatchTakeVideoIntent () {
+    private void dispatchTakeVideoIntent() {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
 
@@ -185,7 +260,7 @@ public class MainActivity extends Activity {
         File storageDir;
         File file = null;
 
-        if (mediaType==REQUEST_IMAGE_CAPTURE){
+        if (mediaType == REQUEST_IMAGE_CAPTURE) {
             mediaFileName = "JPEG_" + timeStamp + "_";
             storageDir = Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_PICTURES);
@@ -195,7 +270,7 @@ public class MainActivity extends Activity {
                     storageDir      /* directory */
             );
             mCurrentPhotoPath = file.getAbsolutePath();
-        }else if (mediaType == REQUEST_VIDEO_CAPTURE) {
+        } else if (mediaType == REQUEST_VIDEO_CAPTURE) {
             mediaFileName = "MP4_" + timeStamp + "_";
             storageDir = Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_MOVIES);
@@ -245,7 +320,7 @@ public class MainActivity extends Activity {
         bmOptions.inJustDecodeBounds = false;
         bmOptions.inSampleSize = scaleFactor;
         bmOptions.inPurgeable = true;
-        
+
         Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
         mImageView.setImageBitmap(bitmap);
     }
@@ -257,8 +332,6 @@ public class MainActivity extends Activity {
         mediaScanIntent.setData(contentUri);
         this.sendBroadcast(mediaScanIntent);
     }
-
-    
 
 
     //Métodos por defecto
