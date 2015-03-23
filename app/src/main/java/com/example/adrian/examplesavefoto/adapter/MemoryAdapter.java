@@ -2,7 +2,7 @@ package com.example.adrian.examplesavefoto.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.support.v4.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.example.adrian.examplesavefoto.R;
 
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
@@ -25,11 +24,15 @@ public class MemoryAdapter extends BaseAdapter {
 
     // List of memories that will be rendered in the GridView
     List<MemoryData> memoriesList;
+    private LruCache<String, Bitmap> mMemoryCache;
+
 
     // Set the context and user list from the constructor
     public MemoryAdapter(Context context, List<MemoryData> memoriesList) {
         this.context = context;
         this.memoriesList = memoriesList;
+
+
     }
 
     // AdapterViews call this method to know how many objects are to be displayed
@@ -74,25 +77,34 @@ public class MemoryAdapter extends BaseAdapter {
     }
 
     private void setPic(ImageView mImageView, String mCurrentPhotoPath) {
-        // Get the dimensions of the bitmap
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+        if (ImagesData.getInstance().getBitmapFromMemCache(mCurrentPhotoPath)==null) {
+            BitmapWorkerTask task = new BitmapWorkerTask(mImageView,mCurrentPhotoPath);
+            task.execute();
+            // Get the dimensions of the bitmap
+           /* BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
 
-        // Determine how much to scale down the image
-        int scaleFactor = 5;
+            // Determine how much to scale down the image
+            int scaleFactor = 5;
 
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
+            // Decode the image file into a Bitmap sized to fill the View
+            bmOptions.inJustDecodeBounds = false;
+            bmOptions.inSampleSize = scaleFactor;
+            bmOptions.inPurgeable = true;
 
-        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+            Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
 
-        bitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, false);
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-       // bitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
+            bitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, false);
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            // bitmap.compress(Bitmap.CompressFormat.JPEG, 40, bytes);
 
-        mImageView.setImageBitmap(bitmap);
+            mImageView.setImageBitmap(bitmap);
+            addBitmapToMemoryCache (mCurrentPhotoPath, bitmap);*/
+        }else{
+            mImageView.setImageBitmap(ImagesData.getInstance().getBitmapFromMemCache(mCurrentPhotoPath));
+        }
     }
+
+
 }
