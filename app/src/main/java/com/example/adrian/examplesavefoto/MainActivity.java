@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.VideoView;
 
@@ -41,8 +42,11 @@ public class MainActivity extends Activity {
     Button mPlayAudioButton;
     Button mSaveButton;
 
+    EditText mTitleET;
+    EditText mDescriptionET;
+
     MediaRecorder mRecorder = null;
-    private MediaPlayer mPlayer = null;
+    MediaPlayer mPlayer = null;
     String mFileName = null;
 
     ContentResolver contentResolver;
@@ -59,6 +63,10 @@ public class MainActivity extends Activity {
 
         //Parte del botón para capturar audio
         //Test añadir comentario
+        mDescriptionET = (EditText) findViewById(R.id.descriptionET);
+        mTitleET = (EditText) findViewById(R.id.titleET);
+
+
         mFileName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath();
         mFileName += "/audiorecordtest.3gp";
         mRecordAudioButton = (Button) findViewById(R.id.startAudioButton);
@@ -161,8 +169,8 @@ public class MainActivity extends Activity {
 
         // Create the ContentValues for the data to be saved
         ContentValues values = new ContentValues();
-        values.put(MemoriesProvider.MEMORY_TITLE, "TÍTULO_TEST");
-        values.put(MemoriesProvider.MEMORY_TEXT, "TEXTO_TEST");
+        values.put(MemoriesProvider.MEMORY_TITLE, mTitleET.getText().toString());
+        values.put(MemoriesProvider.MEMORY_TEXT, mDescriptionET.getText().toString());
         values.put(MemoriesProvider.MEMORY_AUDIO, mFileName);
         values.put(MemoriesProvider.MEMORY_VIDEO, mCurrentVideoPath);
         values.put(MemoriesProvider.MEMORY_IMAGE, mCurrentPhotoPath);
